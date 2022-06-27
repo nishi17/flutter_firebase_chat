@@ -1,8 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.flutter_firebase_chatapp">
+    package="com.example.flutterfirebasechatapp">
    <application
-        android:label="flutter_firebase_chatapp"
+        android:label="flutterfirebasechatapp"
         android:name="${applicationName}"
+       android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
