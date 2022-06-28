@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterfirebasechatapp/screens/auth_screen.dart';
 import 'package:flutterfirebasechatapp/screens/chat_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutterfirebasechatapp/screens/splash_screen.dart';
 
 Future _connectToFirebaseEmulator() async {
   final localHostString = '192.168.1.195';
@@ -56,6 +57,10 @@ class MyApp extends StatelessWidget {
       home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (ctx, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return SplashScreen();
+            }
+
             if (userSnapshot.hasData) {
               return ChatScreen();
             } else {

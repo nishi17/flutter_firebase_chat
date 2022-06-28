@@ -1,6 +1,8 @@
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -18,7 +20,7 @@ class _AuthScreenState extends State<AuthScreen> {
   var _isLoading = false;
 
   Future<void> _submitAuthFrom(String email, String userName, String password,
-      bool isLogin,BuildContext context) async {
+      bool isLogin, BuildContext context, File imageFile) async {
     UserCredential credential;
 
     try {
@@ -39,15 +41,18 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
 
-       await FirebaseFirestore.instance.collection('users').doc(credential.user!.uid).set({
-          'userName':userName,
-          'email':email,
-        });
-      }
-      setState(() {
-        _isLoading = false;
-      });
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('user_image')
+            .child(credential.user!.uid + '.jpg');
+        await ref.putFile(imageFile);
 
+        final url = await ref.getDownloadURL();
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(credential.user!.uid)
+            .set({'userName': userName, 'email': email, 'image_url': url});
+      }
     } on PlatformException catch (error) {
       String? message = 'An error occured! Please check credentials';
 
@@ -55,15 +60,11 @@ class _AuthScreenState extends State<AuthScreen> {
         message = error.message;
       }
 
-      Scaffold.of(context).showSnackBar(
-          SnackBar(content: Text(message!), backgroundColor: Theme
-              .of(context)
-              .errorColor,));
-      setState(() {
-        _isLoading = false;
-      });
-    }catch(err)
-    {
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text(message!),
+        backgroundColor: Theme.of(context).errorColor,
+      ));
+    } catch (err) {
       print(err);
       setState(() {
         _isLoading = false;
@@ -74,10 +75,8 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme
-          .of(context)
-          .primaryColor,
-      body: AuthForm(_submitAuthFrom,_isLoading),
+      backgroundColor: Theme.of(context).primaryColor,
+      body: AuthForm(_submitAuthFrom, _isLoading),
     );
   }
 }

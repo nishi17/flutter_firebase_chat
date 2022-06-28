@@ -1,12 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutterfirebasechatapp/chat/new_messge.dart';
 
 import '../chat/messages.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final fbm = FirebaseMessaging.instance;
+    fbm.requestPermission();
+    FirebaseMessaging.onMessage.listen((message) {
+      print(message);
+      return;
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      print(message);
+      return;
+    });
+    fbm.subscribeToTopic('chat');
+
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,6 +38,7 @@ class ChatScreen extends StatelessWidget {
         title: Text('FlutterChat'),
         actions: [
           DropdownButton(
+            underline: Container(),
             items: [
               DropdownMenuItem(
                 child: Container(
@@ -47,11 +72,13 @@ class ChatScreen extends StatelessWidget {
       ),
       body: Container(
         child: Column(children: [
-          Expanded(child: Messages(),
+          Expanded(
+            child: Messages(),
           ),
           NewMessage(),
         ]),
-      ) /*StreamBuilder<QuerySnapshot>(
+      )
+      /*StreamBuilder<QuerySnapshot>(
         builder: (ctx, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -69,7 +96,7 @@ class ChatScreen extends StatelessWidget {
             .snapshots(),
       )*/
       ,
-     /* floatingActionButton: FloatingActionButton(
+      /* floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
             FirebaseFirestore.instance
